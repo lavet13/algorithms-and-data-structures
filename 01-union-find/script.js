@@ -59,40 +59,52 @@ each entry in the array has associated(связанный) with it, a root that'
 so from this data structure we can associate with each item, - a root which is representative say if it connected component
 
 FIND. Check if p and q have the same root.
-UNION. To merge components containing p and q, set the id of p's root to the id of q's root.
+UNION. To merge components containing p and q(indexes), set the id of p's root to the id of q's root.
+union(9, 6) // SET ID OF P'S ROOT TO THE ID OF Q'S ROOT;
+before: id = [0, 1, 9, 4, 9, 6, 6, 7, 8, 9]
+after: id = [0, 1, 9, 4, 9, 6, 6, 7, 8, 6]
+
+
 */
 
 // union-find
 
 let id = [];
 
-const quickFindUF = function (N) {
+const quickFindUF = function (N, { union, connected }) {
   // setting id of each object to itself (N array accesses)
   // go through and set the value corresponding to each index i to i, straight forward
   for (let i = 0; i < N; i++) {
     id[i] = i;
   }
 
-  console.log(id);
+  if (union.length !== 0) {
+    for (const [p, q] of union) {
+      //for (const i in id) {
+      //if (id[i] === id[p]) id[i] = id[q];
+      //}
+
+      id = id.map(x => (x === id[p] ? id[q] : x));
+      console.log(id);
+    }
+  }
+
+  if (connected.length !== 0) {
+    for (const [p, q] of connected) {
+      return id[p] === id[q];
+    }
+  }
 };
 
-const connected = (p, q) => id[p] === id[q]; // checks whether they id entries are equal
-
-const union = function (p, q) {
-  //for (let i in id) {
-  //if (id[i] === id[p]) id[i] = id[q];
-  //}
-
-  id = id.map(x => (x === id[p] ? id[q] : x));
-  console.log(id);
-};
-
-quickFindUF(10);
-
-union(3, 4);
-union(2, 4);
-union(0, 9);
-union(1, 0);
-union(0, 4);
-union(0, 7);
-union(1, 8);
+quickFindUF(10, {
+  union: [
+    [3, 4],
+    [2, 4],
+    [0, 9],
+    [1, 0],
+    [0, 4],
+    [0, 7],
+    [1, 8],
+  ],
+  connected: [],
+});
