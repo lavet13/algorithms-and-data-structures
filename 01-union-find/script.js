@@ -65,18 +65,36 @@ before: id = [0, 1, 9, 4, 9, 6, 6, 7, 8, 9]
 after: id = [0, 1, 9, 4, 9, 6, 6, 7, 8, 6]
 
 
+Summarize: 
+QUICK-FIND defect:
+- Union too expensive (N array accesses).
+- Trees are flat, but too expensive to keep them flat.
+
+QUICK-UNION defect:
+- Trees can get tall.
+- Find too expensive (could be N array accesses).
+
+Weighted QUICK-UNION:
+- Modify QUICK-UNION to avoid tall trees.
+- Keep track of size of each tree (number of objects).
+- Balance by linking root of smaller tree to root of larger tree.
+that's a little confusing but on the paper it's more convenient to understand
+
 */
 
 // union-find
 
 let id = [];
 
-const quickFindUF = function (N, { union, connected }) {
+function initialization(N) {
   // setting id of each object to itself (N array accesses)
-  // go through and set the value corresponding to each index i to i, straight forward
   for (let i = 0; i < N; i++) {
     id[i] = i;
   }
+}
+
+const quickFindUF = function (N, { union, connected }) {
+  initialization(N);
 
   if (union.length !== 0) {
     for (const [p, q] of union) {
@@ -91,7 +109,33 @@ const quickFindUF = function (N, { union, connected }) {
 
   if (connected.length !== 0) {
     for (const [p, q] of connected) {
-      return id[p] === id[q];
+      console.log(`connected(${p}, ${q}) ${id[p] === id[q]}`);
+    }
+  }
+};
+
+const quickUnionUF = function (N, { union, connected }) {
+  const root = function (i) {
+    // chase parent pointers until reach root (depth of i array accesses)
+    while (i !== id[i]) i = id[i];
+    return i;
+  };
+
+  initialization(N);
+
+  if (union.length !== 0) {
+    for (const [p, q] of union) {
+      // change root of p to point to root of q (depth of p and q array accesses)
+      let i = root(p);
+      let j = root(q);
+      id[i] = j;
+    }
+  }
+
+  if (connected.length !== 0) {
+    for (const [p, q] of connected) {
+      // check if p and q have same root (depth of p and q array accesses)
+      console.log(`connected(${p}, ${q}) ${root(p) === root(q)}`);
     }
   }
 };
