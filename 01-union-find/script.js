@@ -74,22 +74,62 @@ QUICK-UNION defect:
 - Trees can get tall.
 - Find too expensive (could be N array accesses).
 
+
+
 Weighted QUICK-UNION:
 - Modify QUICK-UNION to avoid tall trees.
 - Keep track of size of each tree (number of objects).
 - Balance by linking root of smaller tree to root of larger tree.
-that's a little confusing but on the paper it's more convenient to understand
+on the paper it's more convenient to understand
+
+Data structure. Same as QUICK-UNION, but maintain extra array sz[i] to count number of objects in the tree rooted at i.
+Find. Identical to QUICK-UNION
+  return root(p) === root(q)
+
+Union. Modify QUICK-UNION to:
+- Link root of smaller tree to root of larger tree.
+- Update the sz[] array.
+
+let i = root(p)
+let j = root(q)
+if(i === j) return;
+if(sz[i] < sz[j]) {
+  id[i] = j;
+  sz[j] += sz[i];
+} else {
+  id[j] = i;
+  sz[i] += sz[j];
+}
+
+Improvement. path compression
+QUICK-UNION with path compression. Just after computing the root of p, set the id of each examined node to point to that root.
+
+Two-pass implementation: add second loop to root() to set the id[] of each examined node to the root
+
+Simpler one-pass variant: Make every other node in path point to it's grandparent (thereby halving path length).
+
+const root = function (i) { // chase parent pointers until reach root (depth of i array accesses)
+  while (i !== id[i]) {
+    id[i] = id[id[i]]; // only one extra line of code
+    i = id[i];
+  }
+
+  return i;
+};
+
+In practice. No reason not to! Keeps tree almost completely flat.
 
 */
 
 // union-find
-
 let id = [];
+let sz = [];
 
 function initialization(N) {
   // setting id of each object to itself (N array accesses)
   for (let i = 0; i < N; i++) {
     id[i] = i;
+    sz[i] = i;
   }
 }
 
@@ -115,13 +155,13 @@ const quickFindUF = function (N, { union, connected }) {
 };
 
 const quickUnionUF = function (N, { union, connected }) {
+  initialization(N);
+
   const root = function (i) {
     // chase parent pointers until reach root (depth of i array accesses)
     while (i !== id[i]) i = id[i];
     return i;
   };
-
-  initialization(N);
 
   if (union.length !== 0) {
     for (const [p, q] of union) {
@@ -140,15 +180,70 @@ const quickUnionUF = function (N, { union, connected }) {
   }
 };
 
-quickFindUF(10, {
+const quickUnionWeightedUF = function (N, { union, connected }) {
+  initialization(N);
+
+  const root = function (i) {
+    // chase parent pointers until reach root (depth of i array accesses)
+    while (i !== id[i]) {
+      id[i] = id[id[i]]; // this line represents "path compression"
+      i = id[i];
+    }
+
+    return i;
+  };
+
+  if (union.length !== 0) {
+    for (const [p, q] of union) {
+      // change root of p to point to root of q (depth of p and q array accesses)
+      let i = root(p);
+      let j = root(q);
+
+      if (i === j) return;
+
+      if (sz[i] < sz[j]) {
+        id[i] = j;
+        sz[j] += sz[i];
+      } else {
+        id[j] = i;
+        sz[i] += sz[j];
+      }
+
+      console.log(id);
+    }
+  }
+
+  if (connected.length !== 0) {
+    for (const [p, q] of connected) {
+      // check if p and q have same root (depth of p and q array accesses)
+      console.log(`connected(${p}, ${q}) ${root(p) === root(q)}`);
+    }
+  }
+};
+
+//quickFindUF(10, {
+//union: [
+//[3, 4],
+//[2, 4],
+//[0, 9],
+//[1, 0],
+//[0, 4],
+//[0, 7],
+//[1, 8],
+//],
+//connected: [],
+//});
+
+quickUnionWeightedUF(10, {
   union: [
-    [3, 4],
-    [2, 4],
-    [0, 9],
-    [1, 0],
-    [0, 4],
-    [0, 7],
-    [1, 8],
+    [4, 3],
+    [3, 8],
+    [6, 5],
+    [9, 4],
+    [2, 1],
+    [5, 0],
+    [7, 2],
+    [7, 3],
   ],
   connected: [],
 });
